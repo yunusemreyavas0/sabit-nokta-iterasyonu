@@ -230,11 +230,29 @@
     $('kopya-durum').textContent = '';
     if (tabloVar) cobwebCiz();
 
-    // Dar ekranda sonuçlara kaydır.
-    if (window.innerWidth <= 880) {
-      var hedef = $('sonuc-alani');
-      if (hedef.scrollIntoView) hedef.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // Hata veya uyarı varsa doğrudan mesajlara, dar ekranda ise sonuçlara kaydır.
+    var mesajVar = (sonuc.errors && sonuc.errors.length) || (sonuc.warnings && sonuc.warnings.length);
+    var hedef = mesajVar ? $('mesajlar') : (window.innerWidth <= 880 ? $('sonuc-alani') : null);
+    if (hedef && hedef.scrollIntoView) hedef.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Girdileri ilk açılıştaki hâline döndürür, sonuçları siler.
+  function temizle() {
+    $('form').reset();
+    sonSonuc = null;
+    sonG = null;
+    alanHatalariniIsaretle([]);
+    $('mesajlar').innerHTML = '';
+    $('tablo').querySelector('tbody').innerHTML = '';
+    $('ozet-icerik').innerHTML = '';
+    $('yontem-icerik').innerHTML = '';
+    $('kopya-durum').textContent = '';
+    $('cobweb-not').textContent = '';
+    $('sonuc-alani').hidden = true;
+    $('bos-durum').hidden = false;
+    modGorunumu();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    $('expr').focus({ preventScroll: true });
   }
 
   function yontemCiz(r) {
@@ -496,6 +514,7 @@
       hesapla();
     });
     $('kopyala').addEventListener('click', panoyaKopyala);
+    $('temizle').addEventListener('click', temizle);
     $('csv-indir').addEventListener('click', csvIndir);
 
     var yenidenCiz = null;

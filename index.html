@@ -23,14 +23,16 @@
   <header class="site-header">
     <div class="header-inner">
       <div>
-        <p class="eyebrow">Sayısal Analiz · Ders Projesi</p>
         <h1>Sabit Nokta İterasyonu</h1>
         <p class="subtitle">
           <span class="tex" data-tex="x_{k+1} = g(x_k)"></span> yinelemesiyle
           <span class="tex" data-tex="x = g(x)"></span> denkleminin çözümü
         </p>
       </div>
-      <button type="button" id="tema-dugmesi" class="btn btn-ghost" aria-label="Temayı değiştir">Koyu tema</button>
+      <div class="header-actions">
+        <button type="button" id="temizle" class="btn btn-ghost" title="Girdileri varsayılana döndür ve sonuçları sil">Temizle</button>
+        <button type="button" id="tema-dugmesi" class="btn btn-ghost" aria-label="Temayı değiştir">Koyu tema</button>
+      </div>
     </div>
   </header>
 
@@ -178,7 +180,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>Sabit Nokta İterasyonu · Sayısal Analiz ders projesi · math.js ve KaTeX yerel olarak yüklenir, internet gerekmez.</p>
+    <p><span class="author">Yunus Emre Yavaş</span><span class="divider" aria-hidden="true"></span><span>Sayısal Analiz Dersi Projesi</span></p>
   </footer>
 
   <script src="vendor/mathjs/math.js"></script>

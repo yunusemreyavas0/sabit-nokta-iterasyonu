@@ -62,7 +62,7 @@
     if (!isFinite(v)) return v > 0 ? '∞' : '−∞';
     if (v === 0) return '0';
     var a = Math.abs(v);
-    if (a < 1e-4 || a >= 1e9) return v.toExponential(6);
+    if (a < 1e-4 || a >= 1e9) return v.toExponential(6).replace(/\.?0+e/, 'e');
     return String(Number(v.toPrecision(10)));
   }
 

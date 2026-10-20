@@ -473,7 +473,7 @@ fieldset.group > legend {
   color: var(--muted);
   font-size: 0.95rem;
 }
-.site-footer p { margin: 0; padding-top: 1rem; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem; }
+.site-footer p { margin: 0; padding-top: 1rem; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.4rem 0.9rem; text-align: center; }
 .site-footer .author { color: var(--ink); font-weight: 600; }
 .site-footer .divider { width: 1px; height: 1.1em; background: var(--rule); }
 

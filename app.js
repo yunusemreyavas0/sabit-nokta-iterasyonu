@@ -239,6 +239,9 @@
   // Girdileri ilk açılıştaki hâline döndürür, sonuçları siler.
   function temizle() {
     $('form').reset();
+    // Bazı tarayıcılarda reset() gizli radyo düğmelerini güncellemeyebilir; açıkça ayarla.
+    seciliYap('mode', 'g');
+    seciliYap('startMode', 'x0');
     sonSonuc = null;
     sonG = null;
     alanHatalariniIsaretle([]);
@@ -251,8 +254,9 @@
     $('sonuc-alani').hidden = true;
     $('bos-durum').hidden = false;
     modGorunumu();
+    // Hiçbir alana odaklanma (imleç ve sayfa sola/aşağı atlamasın).
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    $('expr').focus({ preventScroll: true });
   }
 
   function yontemCiz(r) {

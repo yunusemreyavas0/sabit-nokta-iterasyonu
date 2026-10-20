@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sabit Nokta İterasyonu</title>
+  <meta name="description" content="Sayısal Analiz ders projesi: sabit nokta iterasyonu hesaplayıcı, iterasyon tablosu ve örümcek ağı diyagramı.">
+  <script>
+    // Tema, sayfa çizilmeden önce uygulanır (açılışta yanıp sönmeyi önler).
+    (function () {
+      var t = null;
+      try { t = window.localStorage.getItem('sni-tema'); } catch (e) { t = null; }
+      if (t !== 'light' && t !== 'dark') {
+        t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div>
+        <p class="eyebrow">Sayısal Analiz · Ders Projesi</p>
+        <h1>Sabit Nokta İterasyonu</h1>
+        <p class="subtitle">
+          <span class="tex" data-tex="x_{k+1} = g(x_k)"></span> yinelemesiyle
+          <span class="tex" data-tex="x = g(x)"></span> denkleminin çözümü
+        </p>
+      </div>
+      <button type="button" id="tema-dugmesi" class="btn btn-ghost" aria-label="Temayı değiştir">Koyu tema</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- ================= GİRDİ PANELİ ================= -->
+    <aside class="panel input-panel" aria-label="Girdiler">
+      <form id="form" novalidate autocomplete="off">
+        <fieldset class="group">
+          <legend>Denklem biçimi</legend>
+          <div class="segmented" role="radiogroup">
+            <label><input type="radio" name="mode" value="g" checked> <span class="tex" data-tex="x = g(x)"></span></label>
+            <label><input type="radio" name="mode" value="f"> <span class="tex" data-tex="f(x) = 0"></span></label>
+          </div>
+          <p class="hint" id="mod-aciklama"></p>
+        </fieldset>
+
+        <div class="group">
+          <label for="expr" class="field-label"><span id="expr-etiket">g(x) =</span></label>
+          <input type="text" id="expr" name="expr" class="input input-expr" spellcheck="false"
+                 placeholder="ör. cos(x)" value="cos(x)" aria-describedby="onizleme ifade-ipucu">
+          <div id="onizleme" class="preview" aria-live="polite"></div>
+          <p class="hint" id="ifade-ipucu">
+            Üs için <code>^</code>, doğal log için <code>ln(x)</code>, örtük çarpma (<code>2x</code>) kullanılabilir.
+            Fonksiyonlar: sin, cos, tan, exp, ln, log10, sqrt, cbrt, abs… Sabitler: <code>e</code>, <code>pi</code>.
+          </p>
+        </div>
+
+        <fieldset class="group">
+          <legend>Başlangıç</legend>
+          <div class="segmented" role="radiogroup">
+            <label><input type="radio" name="startMode" value="x0" checked> Başlangıç değeri</label>
+            <label><input type="radio" name="startMode" value="interval"> Aralık [a, b]</label>
+          </div>
+          <div id="x0-alani" class="row">
+            <label for="x0" class="field-label"><span class="tex" data-tex="x_0"></span> =</label>
+            <input type="text" id="x0" name="x0" class="input" inputmode="decimal" value="0.5">
+          </div>
+          <div id="aralik-alani" class="row row-2" hidden>
+            <div>
+              <label for="a" class="field-label">a =</label>
+              <input type="text" id="a" name="a" class="input" inputmode="decimal" value="0">
+            </div>
+            <div>
+              <label for="b" class="field-label">b =</label>
+              <input type="text" id="b" name="b" class="input" inputmode="decimal" value="1">
+            </div>
+            <p class="hint full">Aralık verilirse <span class="tex" data-tex="x_0 = \tfrac{a+b}{2}"></span> alınır ve yakınsama koşulları aralıkta kontrol edilir.</p>
+          </div>
+        </fieldset>
+
+        <div class="group row row-2">
+          <div>
+            <label for="tol" class="field-label">Tolerans <span class="tex" data-tex="\varepsilon"></span></label>
+            <input type="text" id="tol" name="tol" class="input" inputmode="decimal" value="1e-6">
+          </div>
+          <div>
+            <label for="nmax" class="field-label"><span class="tex" data-tex="N_{\max}"></span></label>
+            <input type="text" id="nmax" name="nmax" class="input" inputmode="numeric" value="100">
+          </div>
+          <p class="hint full">Ondalık ayırıcı olarak nokta veya virgül kullanılabilir (0.001 ya da 0,001). 1e-6 ve 10^-6 yazımları da geçerlidir.</p>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Hesapla</button>
+      </form>
+
+      <section class="group examples" aria-labelledby="ornek-baslik">
+        <h2 id="ornek-baslik" class="small-heading">Hazır örnekler</h2>
+        <div id="ornekler" class="example-list"></div>
+      </section>
+    </aside>
+
+    <!-- ================= SONUÇLAR ================= -->
+    <section class="results" aria-label="Sonuçlar">
+      <div id="bos-durum" class="panel empty-state">
+        <h2>Nasıl kullanılır?</h2>
+        <ol>
+          <li>Denklem biçimini seçin ve fonksiyonu yazın.</li>
+          <li>Başlangıç değeri <span class="tex" data-tex="x_0"></span> veya bir <span class="tex" data-tex="[a,b]"></span> aralığı girin.</li>
+          <li><span class="tex" data-tex="\varepsilon"></span> ve <span class="tex" data-tex="N_{\max}"></span> değerlerini belirleyip <strong>Hesapla</strong>'ya basın.</li>
+        </ol>
+        <p class="hint">Yöntem: <span class="tex" data-tex="x_{k+1} = g(x_k)"></span>; her adımda
+          <span class="tex" data-tex="|x_{k+1} - x_k|"></span> hesaplanır ve <span class="tex" data-tex="\varepsilon"></span>'dan
+          küçük olduğunda durulur.</p>
+      </div>
+
+      <div id="sonuc-alani" hidden>
+        <section id="mesajlar" aria-live="polite"></section>
+
+        <section class="panel" id="yontem" aria-labelledby="yontem-baslik">
+          <h2 id="yontem-baslik">Problem ve yöntem</h2>
+          <div id="yontem-icerik"></div>
+        </section>
+
+        <section class="panel" id="tablo-bolumu" aria-labelledby="tablo-baslik">
+          <div class="section-head">
+            <h2 id="tablo-baslik">İterasyon tablosu</h2>
+            <div class="toolbar">
+              <button type="button" class="btn btn-small" id="kopyala">Panoya kopyala</button>
+              <button type="button" class="btn btn-small" id="csv-indir">CSV indir</button>
+            </div>
+          </div>
+          <p class="hint" id="kopya-durum" role="status" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table class="iter-table" id="tablo">
+              <thead>
+                <tr>
+                  <th scope="col"><span class="tex" data-tex="k"></span></th>
+                  <th scope="col"><span class="tex" data-tex="x_k"></span></th>
+                  <th scope="col"><span class="tex" data-tex="g(x_k)"></span></th>
+                  <th scope="col">Hata <span class="tex" data-tex="|x_k - x_{k-1}|"></span></th>
+                  <th scope="col"><span class="tex" data-tex="|g'(x_k)|"></span></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="hint table-note">
+            <span class="tex" data-tex="k"></span>. satırdaki hata, <span class="tex" data-tex="x_k = g(x_{k-1})"></span> ile bir önceki
+            değer arasındaki farktır; yani ödevdeki <span class="tex" data-tex="|x_{k+1} - x_k|"></span> ölçütünün bir indis kaydırılmış
+            hâlidir. <span class="tex" data-tex="k = 0"></span>'da önceki değer olmadığından “—” yazılır.
+            <span class="legend-chip chip-warn">sarı hücre</span> <span class="tex" data-tex="|g'(x_k)| \ge 1"></span> olan adımları gösterir.
+          </p>
+        </section>
+
+        <section class="panel summary" id="ozet" aria-labelledby="ozet-baslik">
+          <h2 id="ozet-baslik">Sonuç</h2>
+          <div id="ozet-icerik"></div>
+        </section>
+
+        <section class="panel" id="cobweb-bolumu" aria-labelledby="cobweb-baslik">
+          <h2 id="cobweb-baslik">Örümcek ağı (cobweb) diyagramı</h2>
+          <div class="canvas-wrap">
+            <canvas id="cobweb" role="img" aria-label="y = x doğrusu, y = g(x) eğrisi ve iterasyon basamakları"></canvas>
+          </div>
+          <ul class="legend">
+            <li><span class="swatch swatch-diag"></span> <span class="tex" data-tex="y = x"></span></li>
+            <li><span class="swatch swatch-curve"></span> <span class="tex" data-tex="y = g(x)"></span></li>
+            <li><span class="swatch swatch-web"></span> iterasyon basamakları</li>
+            <li><span class="swatch swatch-root"></span> son değer</li>
+          </ul>
+          <p class="hint" id="cobweb-not"></p>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Sabit Nokta İterasyonu · Sayısal Analiz ders projesi · math.js ve KaTeX yerel olarak yüklenir, internet gerekmez.</p>
+  </footer>
+
+  <script src="vendor/mathjs/math.js"></script>
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="solver.js"></script>
+  <script src="cobweb.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

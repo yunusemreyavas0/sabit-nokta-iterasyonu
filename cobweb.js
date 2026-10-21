@@ -63,9 +63,10 @@
 
   function draw(canvas, veri) {
     var ctx = canvas.getContext('2d');
-    var dpr = window.devicePixelRatio || 1;
-    var genislik = canvas.clientWidth || 600;
-    var yukseklik = canvas.clientHeight || genislik;
+    // Dışa aktarma için boyut ve ölçek verilebilir (ekranda değilse clientWidth 0 olur).
+    var dpr = veri.pixelRatio || window.devicePixelRatio || 1;
+    var genislik = veri.width || canvas.clientWidth || 600;
+    var yukseklik = veri.height || canvas.clientHeight || genislik;
     canvas.width = Math.round(genislik * dpr);
     canvas.height = Math.round(yukseklik * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

@@ -238,10 +238,13 @@
 
   // Girdileri ilk açılıştaki hâline döndürür, sonuçları siler.
   function temizle() {
+    // Seçili denklem biçimi ve başlangıç türü korunur; yalnızca kutular sıfırlanır.
+    var mod = secili('mode');
+    var baslangic = secili('startMode');
     $('form').reset();
-    // Bazı tarayıcılarda reset() gizli radyo düğmelerini güncellemeyebilir; açıkça ayarla.
-    seciliYap('mode', 'g');
-    seciliYap('startMode', 'x0');
+    seciliYap('mode', mod);
+    seciliYap('startMode', baslangic);
+    $('expr').value = '';
     sonSonuc = null;
     sonG = null;
     alanHatalariniIsaretle([]);

@@ -489,6 +489,123 @@
     }
   }
 
+  // ---- PDF (yazdırma) ----------------------------------------------------
+  // Tarayıcının yazdırma penceresi açılır; hedef olarak "PDF olarak kaydet" seçilir.
+  var yazdirmaOncesiTema = null;
+
+  function yazdirmaOncesi() {
+    // Kağıt için her zaman açık tema; grafik de açık renklerle yeniden çizilir.
+    if (yazdirmaOncesiTema !== null) return; // olay iki kez gelirse ilk temayı koru
+    yazdirmaOncesiTema = mevcutTema();
+    if (yazdirmaOncesiTema === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      cobwebCiz();
+    }
+  }
+
+  function yazdirmaSonrasi() {
+    if (yazdirmaOncesiTema === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      cobwebCiz();
+    }
+    yazdirmaOncesiTema = null;
+  }
+
+  function pdfKaydet() {
+    if (!sonSonuc || !sonSonuc.ok) return;
+    durumYaz('Açılan pencerede hedef/yazıcı olarak "PDF olarak kaydet" seçin.');
+    try {
+      window.print();
+    } catch (e) {
+      durumYaz('Yazdırma penceresi açılamadı: ' + e.message + '. Tarayıcı menüsünden Dosya → Yazdır ile deneyin.');
+    }
+  }
+
+  // ---- PNG (cobweb grafiği) ---------------------------------------------
+  // Ekrandaki grafiğin altına açıklama satırı eklenmiş bir kopyası indirilir.
+  function pngIndir() {
+    if (!sonSonuc || !sonSonuc.ok) return;
+    try {
+      // Grafik ekrandan bağımsız olarak 640 px genişlik, 3 kat çözünürlükte yeniden çizilir.
+      var olcek = 3;
+      var kaynak = document.createElement('canvas');
+      window.Cobweb.draw(kaynak, {
+        rows: sonSonuc.rows, g: sonG, converged: sonSonuc.converged, root: sonSonuc.root,
+        width: 640, height: 640, pixelRatio: olcek
+      });
+      var seritYuk = Math.round(64 * olcek);
+      var c = document.createElement('canvas');
+      c.width = kaynak.width;
+      c.height = kaynak.height + seritYuk;
+      var ctx = c.getContext('2d');
+      var stil = getComputedStyle(document.documentElement);
+      var renk = function (ad) { return stil.getPropertyValue(ad).trim(); };
+
+      ctx.fillStyle = renk('--plot-bg');
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(kaynak, 0, 0);
+
+      // Açıklama satırı: y = x, y = g(x), basamaklar, son değer
+      var font = getComputedStyle(document.body).fontFamily;
+      ctx.font = Math.round(13 * olcek) + 'px ' + font;
+      ctx.textBaseline = 'middle';
+      var y1 = kaynak.height + seritYuk * 0.32;
+      var ogeler = [
+        { ad: 'y = x', renk: renk('--plot-diag'), kesik: true },
+        { ad: 'y = g(x)', renk: renk('--plot-curve') },
+        { ad: 'iterasyon basamakları', renk: renk('--plot-web') },
+        { ad: 'son değer', renk: renk('--plot-root'), daire: true }
+      ];
+      var cizgi = 26 * olcek, bosluk = 18 * olcek;
+      var toplam = ogeler.reduce(function (t, o) { return t + cizgi + 6 * olcek + ctx.measureText(o.ad).width + bosluk; }, -bosluk);
+      var x = (c.width - toplam) / 2;
+      ogeler.forEach(function (o) {
+        ctx.strokeStyle = o.renk;
+        ctx.lineWidth = 2 * olcek;
+        ctx.setLineDash(o.kesik ? [6 * olcek, 4 * olcek] : []);
+        ctx.beginPath();
+        if (o.daire) ctx.arc(x + cizgi / 2, y1, 5 * olcek, 0, Math.PI * 2);
+        else { ctx.moveTo(x, y1); ctx.lineTo(x + cizgi, y1); }
+        ctx.stroke();
+        ctx.setLineDash([]);
+        x += cizgi + 6 * olcek;
+        ctx.fillStyle = renk('--ink');
+        ctx.fillText(o.ad, x, y1);
+        x += ctx.measureText(o.ad).width + bosluk;
+      });
+
+      // İkinci satır: fonksiyon ve sonuç
+      var r = sonSonuc;
+      var bilgi = (r.mode === 'f' ? 'f(x) = ' + r.func.inputText + ',  g(x) = x − f(x)' : 'g(x) = ' + r.func.gText) +
+        '   ·   x₀ = ' + FP.formatNumber(r.x0) + '   ·   ' +
+        (r.converged ? 'kök ≈ ' + FP.formatNumber(r.root) + ' (' + r.iterations + ' adım)' : (r.stopLabel || ''));
+      ctx.fillStyle = renk('--ink-soft');
+      ctx.textAlign = 'center';
+      ctx.fillText(bilgi, c.width / 2, kaynak.height + seritYuk * 0.74);
+
+      var indir = function (url, temizle) {
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'sabit-nokta-cobweb.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        if (temizle) setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        $('cobweb-not').textContent = 'Grafik PNG olarak indirildi (sabit-nokta-cobweb.png).';
+      };
+      if (c.toBlob) {
+        c.toBlob(function (blob) {
+          if (blob) indir(URL.createObjectURL(blob), true);
+          else indir(c.toDataURL('image/png'), false);
+        }, 'image/png');
+      } else {
+        indir(c.toDataURL('image/png'), false);
+      }
+    } catch (e) {
+      $('cobweb-not').textContent = 'PNG oluşturulamadı: ' + e.message;
+    }
+  }
+
   // ---- Başlatma ----------------------------------------------------------
   function baslat() {
     renderStaticTex(document);
@@ -523,6 +640,10 @@
     $('kopyala').addEventListener('click', panoyaKopyala);
     $('temizle').addEventListener('click', temizle);
     $('csv-indir').addEventListener('click', csvIndir);
+    $('pdf-kaydet').addEventListener('click', pdfKaydet);
+    $('png-indir').addEventListener('click', pngIndir);
+    window.addEventListener('beforeprint', yazdirmaOncesi);
+    window.addEventListener('afterprint', yazdirmaSonrasi);
 
     var yenidenCiz = null;
     window.addEventListener('resize', function () {

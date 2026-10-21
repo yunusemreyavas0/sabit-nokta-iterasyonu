@@ -498,8 +498,23 @@ fieldset.group > legend {
   .iter-table th, .iter-table td { padding: 0.28rem 0.5rem; }
 }
 
+/* PDF / yazdırma görünümü: yalnızca rapor kısmı, açık renkler. */
+@page { margin: 14mm; }
 @media print {
-  .input-panel, .toolbar, #tema-dugmesi { display: none; }
-  .layout { grid-template-columns: 1fr; }
-  .table-wrap { max-height: none; }
+  .input-panel, .toolbar, .header-actions, #kopya-durum, #bos-durum { display: none !important; }
+  body { font-size: 11pt; background: #fff; }
+  .site-header { background: #fff; }
+  .site-header, .layout, .site-footer { max-width: none; padding-left: 0; padding-right: 0; }
+  .header-inner { padding: 0 0 0.6rem; }
+  .layout { display: block; padding-top: 0.8rem; }
+  #sonuc-alani { display: block; }
+  #sonuc-alani > * { margin-bottom: 0.8rem; }
+  .panel { box-shadow: none; background: #fff; break-inside: avoid; }
+  #tablo-bolumu { break-inside: auto; }
+  .table-wrap { max-height: none; overflow: visible; }
+  .iter-table thead th { position: static; }
+  .iter-table tr { break-inside: avoid; }
+  .iter-table tbody tr:hover td { background: none; }
+  .canvas-wrap { max-width: 13cm; }
+  .alert, .iter-table td, .reason-badge, .chip-warn { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

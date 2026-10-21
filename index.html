@@ -132,6 +132,7 @@
             <div class="toolbar">
               <button type="button" class="btn btn-small" id="kopyala">Panoya kopyala</button>
               <button type="button" class="btn btn-small" id="csv-indir">CSV indir</button>
+              <button type="button" class="btn btn-small" id="pdf-kaydet" title="Tablo, sonuç ve grafiği PDF olarak kaydet">PDF kaydet</button>
             </div>
           </div>
           <p class="hint" id="kopya-durum" role="status" aria-live="polite"></p>
@@ -163,7 +164,12 @@
         </section>
 
         <section class="panel" id="cobweb-bolumu" aria-labelledby="cobweb-baslik">
-          <h2 id="cobweb-baslik">Örümcek ağı (cobweb) diyagramı</h2>
+          <div class="section-head">
+            <h2 id="cobweb-baslik">Örümcek ağı (cobweb) diyagramı</h2>
+            <div class="toolbar">
+              <button type="button" class="btn btn-small" id="png-indir">PNG indir</button>
+            </div>
+          </div>
           <div class="canvas-wrap">
             <canvas id="cobweb" role="img" aria-label="y = x doğrusu, y = g(x) eğrisi ve iterasyon basamakları"></canvas>
           </div>

@@ -2,9 +2,13 @@
 
 Sayısal Analiz dersi projesi. Bu web uygulaması, `x = g(x)` veya `f(x) = 0` biçiminde serbest metinle girilen bir denklemi sabit nokta iterasyonu (`x_{k+1} = g(x_k)`) ile çözer. Her adımı AtoZmath benzeri bir tabloda gösterir ve yakınsamayı örümcek ağı (cobweb) diyagramıyla görselleştirir.
 
+**Canlı sürüm:** https://yunusemreyavas0.github.io/sabit-nokta-iterasyonu/
+
 ## Nasıl açılır?
 
-`index.html` dosyasına çift tıklamanız yeterli. Kurulum, derleme veya internet gerekmez. math.js, KaTeX ve yazı tipleri proje klasöründen yüklenir. Klasör yapısını bozmadan açın.
+En kolayı yukarıdaki canlı sürüm linkini açmak; tarayıcıda doğrudan çalışır.
+
+Bilgisayarda çevrimdışı kullanmak için `index.html` dosyasına çift tıklamanız yeterli. Kurulum, derleme veya internet gerekmez. math.js, KaTeX ve yazı tipleri proje klasöründen yüklenir. Klasör yapısını bozmadan açın.
 
 Hesap çekirdeğinin testlerini çalıştırmak için (Node.js gerekir, başka bağımlılık yok):
 
